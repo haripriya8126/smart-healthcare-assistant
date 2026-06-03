@@ -1,0 +1,261 @@
+/**
+ * Clinical symptom knowledge base for rule-based triage.
+ * Weights are relative risk contributions (not diagnostic probabilities).
+ *
+ * @typedef {Object} SymptomDefinition
+ * @property {string} id
+ * @property {string} label
+ * @property {string[]} patterns - Substrings matched after text normalization
+ * @property {number} riskWeight - Points toward composite risk score (0-50 typical)
+ * @property {string} category
+ * @property {boolean} isEmergency - Triggers emergency alert pathway
+ * @property {string} [clinicalContext]
+ */
+
+/** @type {SymptomDefinition[]} */
+export const SYMPTOM_REGISTRY = [
+  // --- Emergency / critical ---
+  {
+    id: 'chest_pain',
+    label: 'Chest pain or pressure',
+    patterns: [
+      'chest pain',
+      'chest pressure',
+      'crushing chest',
+      'heart attack',
+      'chest tightness',
+      'pain in chest',
+      'chest discomfort',
+    ],
+    riskWeight: 45,
+    category: 'cardiovascular',
+    isEmergency: true,
+    clinicalContext: 'Acute chest symptoms may indicate cardiac ischemia or pulmonary embolism.',
+  },
+  {
+    id: 'severe_breathing',
+    label: 'Severe breathing difficulty',
+    patterns: [
+      'cannot breathe',
+      "can't breathe",
+      'severe shortness of breath',
+      'gasping for air',
+      'choking',
+      'struggling to breathe',
+      'blue lips',
+      'cyanosis',
+    ],
+    riskWeight: 45,
+    category: 'respiratory',
+    isEmergency: true,
+    clinicalContext: 'Severe respiratory distress requires immediate emergency evaluation.',
+  },
+  {
+    id: 'stroke_signs',
+    label: 'Stroke warning signs',
+    patterns: [
+      'face drooping',
+      'slurred speech',
+      'sudden numbness',
+      'sudden weakness',
+      'sudden confusion',
+      'worst headache',
+      'one-sided weakness',
+      'facial droop',
+    ],
+    riskWeight: 50,
+    category: 'neurological',
+    isEmergency: true,
+    clinicalContext: 'FAST stroke signs warrant immediate emergency activation.',
+  },
+  {
+    id: 'loss_of_consciousness',
+    label: 'Loss of consciousness',
+    patterns: [
+      'passed out',
+      'fainted and not waking',
+      'unconscious',
+      'unresponsive',
+      'seizure',
+      'convulsion',
+    ],
+    riskWeight: 50,
+    category: 'neurological',
+    isEmergency: true,
+    clinicalContext: 'Altered consciousness is a medical emergency until evaluated.',
+  },
+  {
+    id: 'severe_bleeding',
+    label: 'Severe bleeding',
+    patterns: [
+      'severe bleeding',
+      'uncontrolled bleeding',
+      'coughing blood',
+      'vomiting blood',
+      'blood in stool black',
+    ],
+    riskWeight: 48,
+    category: 'hematologic',
+    isEmergency: true,
+    clinicalContext: 'Significant hemorrhage or hemoptysis/hematemesis needs urgent care.',
+  },
+  {
+    id: 'anaphylaxis',
+    label: 'Severe allergic reaction',
+    patterns: [
+      'anaphylaxis',
+      'throat swelling',
+      'tongue swelling',
+      'severe allergic reaction',
+      'difficulty swallowing with hives',
+    ],
+    riskWeight: 48,
+    category: 'allergy',
+    isEmergency: true,
+    clinicalContext: 'Airway-threatening allergy requires epinephrine and emergency services.',
+  },
+  {
+    id: 'self_harm',
+    label: 'Self-harm or suicide risk',
+    patterns: [
+      'want to die',
+      'suicidal',
+      'kill myself',
+      'self-harm',
+      'hurt myself',
+    ],
+    riskWeight: 50,
+    category: 'mental_health',
+    isEmergency: true,
+    clinicalContext: 'Active self-harm ideation requires immediate crisis support.',
+  },
+
+  // --- High-risk (non-emergency phrasing) ---
+  {
+    id: 'breathing_difficulty',
+    label: 'Breathing difficulty',
+    patterns: [
+      'shortness of breath',
+      'hard to breathe',
+      'breathing difficulty',
+      'wheezing',
+      'labored breathing',
+    ],
+    riskWeight: 32,
+    category: 'respiratory',
+    isEmergency: false,
+    clinicalContext: 'Dyspnea may reflect asthma exacerbation, infection, or cardiac strain.',
+  },
+  {
+    id: 'high_fever',
+    label: 'High fever',
+    patterns: [
+      'high fever',
+      'fever over 103',
+      'fever 104',
+      'very high temperature',
+    ],
+    riskWeight: 28,
+    category: 'infectious',
+    isEmergency: false,
+    clinicalContext: 'High-grade fever with toxicity may need same-day medical review.',
+  },
+  {
+    id: 'stiff_neck_fever',
+    label: 'Fever with stiff neck',
+    patterns: ['stiff neck', 'neck stiffness with fever', 'meningitis'],
+    riskWeight: 38,
+    category: 'infectious',
+    isEmergency: true,
+    clinicalContext: 'Fever plus neck stiffness raises concern for meningitis.',
+  },
+
+  // --- Moderate risk ---
+  {
+    id: 'fever',
+    label: 'Fever',
+    patterns: ['fever', 'temperature', 'chills', 'feeling hot'],
+    riskWeight: 18,
+    category: 'infectious',
+    isEmergency: false,
+    clinicalContext: 'Fever commonly reflects viral illness; monitor hydration and duration.',
+  },
+  {
+    id: 'cough',
+    label: 'Cough',
+    patterns: ['cough', 'coughing', 'dry cough', 'productive cough'],
+    riskWeight: 14,
+    category: 'respiratory',
+    isEmergency: false,
+    clinicalContext: 'Cough may be viral, allergic, or lower respiratory tract related.',
+  },
+  {
+    id: 'headache',
+    label: 'Headache',
+    patterns: ['headache', 'head pain', 'migraine'],
+    riskWeight: 12,
+    category: 'neurological',
+    isEmergency: false,
+    clinicalContext: 'Most headaches are benign; sudden severe headache needs escalation.',
+  },
+  {
+    id: 'abdominal_pain',
+    label: 'Abdominal pain',
+    patterns: [
+      'stomach pain',
+      'abdominal pain',
+      'belly pain',
+      'nausea and vomiting',
+      'severe nausea',
+    ],
+    riskWeight: 22,
+    category: 'gastrointestinal',
+    isEmergency: false,
+    clinicalContext: 'Abdominal pain has broad differentials from viral gastroenteritis to appendicitis.',
+  },
+  {
+    id: 'dizziness',
+    label: 'Dizziness or vertigo',
+    patterns: ['dizzy', 'dizziness', 'vertigo', 'lightheaded', 'room spinning'],
+    riskWeight: 16,
+    category: 'neurological',
+    isEmergency: false,
+    clinicalContext: 'Dizziness may relate to dehydration, vestibular issues, or cardiac rhythm.',
+  },
+  {
+    id: 'rash',
+    label: 'Skin rash',
+    patterns: ['rash', 'hives', 'itchy skin', 'skin eruption'],
+    riskWeight: 14,
+    category: 'dermatologic',
+    isEmergency: false,
+    clinicalContext: 'Rashes vary from viral exanthems to allergic reactions.',
+  },
+  {
+    id: 'fatigue',
+    label: 'Fatigue',
+    patterns: ['fatigue', 'extremely tired', 'exhausted', 'low energy'],
+    riskWeight: 10,
+    category: 'general',
+    isEmergency: false,
+    clinicalContext: 'Fatigue is nonspecific; consider duration, fever, and red flags.',
+  },
+  {
+    id: 'sore_throat',
+    label: 'Sore throat',
+    patterns: ['sore throat', 'throat pain', 'painful swallowing'],
+    riskWeight: 12,
+    category: 'ent',
+    isEmergency: false,
+    clinicalContext: 'Pharyngitis is common; severe unilateral pain may need strep evaluation.',
+  },
+  {
+    id: 'body_aches',
+    label: 'Body aches',
+    patterns: ['body ache', 'body aches', 'muscle ache', 'myalgia'],
+    riskWeight: 10,
+    category: 'general',
+    isEmergency: false,
+    clinicalContext: 'Myalgias often accompany viral syndromes.',
+  },
+];

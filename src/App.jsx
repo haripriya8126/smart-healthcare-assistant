@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { AppointmentManager } from './components/appointments/AppointmentManager.jsx';
+import { SymptomTriageAnalyzer } from './components/triage/SymptomTriageAnalyzer.jsx';
+import { runMedicalTriage, toUiSeverity } from './triage/index.js';
 
 // Custom Minimal SVG Icons as React Components to ensure zero dependencies
 const ShieldAlertIcon = () => (
@@ -72,13 +75,6 @@ function App() {
   const [heartRate, setHeartRate] = useState(72);
   const [isTyping, setIsTyping] = useState(false);
   
-  // AI Symptom Analyzer State
-  const [analyzerSymptoms, setAnalyzerSymptoms] = useState('');
-  const [analyzerAge, setAnalyzerAge] = useState('');
-  const [analyzerGender, setAnalyzerGender] = useState('Female');
-  const [analyzerLoading, setAnalyzerLoading] = useState(false);
-  const [analyzerResult, setAnalyzerResult] = useState(null);
-
   // Health Score Calculator State
   const [sleepHours, setSleepHours] = useState('');
   const [waterIntake, setWaterIntake] = useState('');
@@ -149,20 +145,21 @@ function App() {
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
       if (promptId === 'discomfort') {
+        const triage = runMedicalTriage({
+          symptomsText: questionText,
+          age: 35,
+          gender: 'Female',
+        });
         botResponse = {
           id: Date.now() + 1,
           sender: 'bot',
           isBot: true,
           time: timeStr,
-          triage: 'URGENT MEDICAL ASSESSMENT',
-          triageLevel: 'urgent',
-          summary: 'Symptoms resembling chest discomfort post-exertion require immediate clinical screening to rule out cardiac strain or ischemia.',
-          actions: [
-            'Do NOT engage in any physical activities; rest in an upright position.',
-            'Have someone nearby, or prepare emergency contact channels.',
-            'If pain persists, radiates to left arm or jaw, or causes shortness of breath, call emergency services immediately.'
-          ],
-          specialist: 'Emergency Cardiology Triage Consultant'
+          triage: triage.displayTitle,
+          triageLevel: toUiSeverity(triage.riskLevel, triage.isEmergency),
+          summary: triage.explanation.summary,
+          actions: triage.recommendedActions,
+          specialist: triage.specialistRouting,
         };
       } else if (promptId === 'blood') {
         botResponse = {
@@ -200,81 +197,6 @@ function App() {
 
       setChatMessages(prev => [...prev, botResponse]);
       setIsTyping(false);
-    }, 1200);
-  };
-
-  // Handler for custom Symptom Analyzer scan
-  const handleAnalyzeSymptoms = (e) => {
-    e.preventDefault();
-    if (!analyzerSymptoms.trim()) {
-      alert('Please describe your symptoms first.');
-      return;
-    }
-    
-    setAnalyzerLoading(true);
-    setAnalyzerResult(null);
-
-    setTimeout(() => {
-      const symText = analyzerSymptoms.toLowerCase();
-      let matched = [];
-      
-      // Strict rule mappings
-      if (symText.includes('fever')) {
-        matched.push({ name: 'Viral Fever', confidence: 82, rec: 'Rest, hydrate, and consider OTC antipyretics like acetaminophen.' });
-        matched.push({ name: 'Flu', confidence: 70, rec: 'Isolate if contagiousness is suspected, monitor temperature closely, and rest.' });
-      }
-      if (symText.includes('cough')) {
-        matched.push({ name: 'Common Cold', confidence: 78, rec: 'Consume warm fluids, use throat lozenges, and try steam inhalation.' });
-        matched.push({ name: 'Bronchitis', confidence: 60, rec: 'Avoid lung irritants/smoke, use a humidifier, and consult if wheezing occurs.' });
-      }
-      if (symText.includes('headache')) {
-        matched.push({ name: 'Migraine', confidence: 75, rec: 'Rest in a quiet, dark room, avoid screen triggers, and stay hydrated.' });
-        matched.push({ name: 'Stress', confidence: 68, rec: 'Practice breathing exercises, stretch neck/shoulders, and take screen breaks.' });
-      }
-
-      // Fallback if no matching keyword is inputted
-      if (matched.length === 0) {
-        matched.push({
-          name: 'Undifferentiated Health Assessment',
-          confidence: 45,
-          rec: 'Ensure rest, stay hydrated, and monitor if symptoms persist beyond 48 hours.'
-        });
-      }
-
-      // Sort matched conditions descending by confidence
-      matched.sort((a, b) => b.confidence - a.confidence);
-
-      // Determine overall triage severity level
-      let severity = 'optimal';
-      let title = 'LOW RISK CLINICAL PROFILE';
-      if (symText.includes('chest pain') || symText.includes('breathing')) {
-        severity = 'urgent';
-        title = '🚨 IMMEDIATE ATTENTION REQUIRED';
-      } else if (matched.some(m => m.confidence >= 70)) {
-        severity = 'warning';
-        title = '⚠️ CLINICAL OBSERVATION RECOMMENDED';
-      }
-
-      // Determine autorouted specialty based on primary condition
-      let specialists = 'General Practitioner / Telehealth';
-      if (symText.includes('chest pain')) {
-        specialists = 'Cardiovascular Emergency Unit';
-      } else if (matched[0].name.includes('Fever') || matched[0].name.includes('Flu')) {
-        specialists = 'Infectious Disease Clinic';
-      } else if (matched[0].name.includes('Cough') || matched[0].name.includes('Bronchitis')) {
-        specialists = 'Pulmonary Triage Specialist';
-      } else if (matched[0].name.includes('Migraine') || matched[0].name.includes('Stress')) {
-        specialists = 'Neurology & Stress Management Unit';
-      }
-
-      setAnalyzerResult({
-        severity,
-        title,
-        conditions: matched,
-        summary: `Symptom signature analysis completed for a ${analyzerAge || 30}-year-old ${analyzerGender}. The following potential conditions were detected based on your inputs.`,
-        specialists
-      });
-      setAnalyzerLoading(false);
     }, 1200);
   };
 
@@ -1537,6 +1459,15 @@ function App() {
             </li>
             <li>
               <a 
+                href="#appointments" 
+                className={`nav-link ${activeTab === 'appointments' ? 'active' : ''}`}
+                onClick={() => setActiveTab('appointments')}
+              >
+                Appointments
+              </a>
+            </li>
+            <li>
+              <a 
                 href="#security" 
                 className={`nav-link ${activeTab === 'security' ? 'active' : ''}`}
                 onClick={() => setActiveTab('security')}
@@ -1582,6 +1513,7 @@ function App() {
         <a href="#features" className="nav-link" onClick={() => { setActiveTab('features'); setMobileMenuOpen(false); }}>Features</a>
         <a href="#technology" className="nav-link" onClick={() => { setActiveTab('technology'); setMobileMenuOpen(false); }}>AI Technology</a>
         <a href="#clinicians" className="nav-link" onClick={() => { setActiveTab('clinicians'); setMobileMenuOpen(false); }}>Clinician Network</a>
+        <a href="#appointments" className="nav-link" onClick={() => { setActiveTab('appointments'); setMobileMenuOpen(false); }}>Appointments</a>
         <a href="#security" className="nav-link" onClick={() => { setActiveTab('security'); setMobileMenuOpen(false); }}>Security & Trust</a>
         <a href="#pricing" className="nav-link" onClick={() => { setActiveTab('pricing'); setMobileMenuOpen(false); }}>Pricing</a>
         <button 
@@ -1826,163 +1758,11 @@ function App() {
         </div>
       </main>
 
-      {/* --- AI SYMPTOM ANALYZER SECTION --- */}
-      <section className="analyzer-section container" id="analyzer">
-        <div className="analyzer-title-group">
-          <span className="hero-badge" style={{ marginBottom: '12px' }}>
-            <StethoscopeIcon />
-            Clinical Intake Engine
-          </span>
-          <h2 className="analyzer-section-title">AI Symptom Triage Analyzer</h2>
-          <p className="analyzer-section-subtitle">
-            Provide demographics and symptom characteristics below to run an automated diagnostic risk triage scan.
-          </p>
-        </div>
-
-        <div className="analyzer-card">
-          <div className="analyzer-grid">
-            
-            {/* Form Inputs Left Column */}
-            <form onSubmit={handleAnalyzeSymptoms} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              
-              {/* Symptoms Input */}
-              <div className="form-group">
-                <label className="form-label" htmlFor="symptoms-input">Describe Your Symptoms</label>
-                <textarea
-                  id="symptoms-input"
-                  className="input-field"
-                  rows="4"
-                  placeholder="e.g., dry cough, mild fever, or sudden chest discomfort..."
-                  value={analyzerSymptoms}
-                  onChange={(e) => setAnalyzerSymptoms(e.target.value)}
-                  style={{ resize: 'none' }}
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '8px' }}>
-                {/* Age Input */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" htmlFor="age-input">Age</label>
-                  <input
-                    type="number"
-                    id="age-input"
-                    className="input-field"
-                    placeholder="e.g. 35"
-                    min="1"
-                    max="120"
-                    value={analyzerAge}
-                    onChange={(e) => setAnalyzerAge(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {/* Gender Select Group */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Biological Gender</label>
-                  <div className="gender-options">
-                    <button
-                      type="button"
-                      className={`gender-btn ${analyzerGender === 'Female' ? 'active' : ''}`}
-                      onClick={() => setAnalyzerGender('Female')}
-                    >
-                      Female
-                    </button>
-                    <button
-                      type="button"
-                      className={`gender-btn ${analyzerGender === 'Male' ? 'active' : ''}`}
-                      onClick={() => setAnalyzerGender('Male')}
-                    >
-                      Male
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                type="submit"
-                className={`btn btn-gradient ${analyzerLoading ? 'disabled' : ''}`}
-                style={{ width: '100%', height: '48px', marginTop: '16px' }}
-                disabled={analyzerLoading}
-              >
-                {analyzerLoading ? 'Analyzing Biomarkers...' : 'Execute Triage Scan'}
-                <ArrowRightIcon />
-              </button>
-
-            </form>
-
-            {/* Results Panel Right Column */}
-            <div className="results-panel">
-              {analyzerLoading ? (
-                <div className="typing-indicator" style={{ background: 'transparent' }}>
-                  <div className="typing-dot" style={{ backgroundColor: 'var(--primary)' }}></div>
-                  <div className="typing-dot" style={{ backgroundColor: 'var(--secondary)' }}></div>
-                  <div className="typing-dot" style={{ backgroundColor: 'var(--accent-purple)' }}></div>
-                </div>
-              ) : analyzerResult ? (
-                <div style={{ width: '100%' }}>
-                  <div className="clinical-report-card" style={{ margin: 0, padding: 0, background: 'transparent', border: 'none' }}>
-                    <div className={`clinical-header-badge ${analyzerResult.severity}`} style={{ fontSize: '11px', padding: '6px 10px', marginBottom: '14px' }}>
-                      <SparkleIcon />
-                      {analyzerResult.title}
-                    </div>
-                    
-                    <p style={{ fontSize: '13.5px', lineHeight: '1.45', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                      {analyzerResult.summary}
-                    </p>
-
-                    <div style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', marginBottom: '12px', color: '#FFF' }}>
-                      DETECTED CONDITIONS:
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '16px' }}>
-                      {analyzerResult.conditions.map((cond, i) => (
-                        <div key={i} style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#FFF' }}>{cond.name}</span>
-                            <span style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--primary)' }}>{cond.confidence}% Confidence</span>
-                          </div>
-                          
-                          {/* Confidence Progress Bar */}
-                          <div style={{ height: '4px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '2px', overflow: 'hidden', marginBottom: '8px' }}>
-                            <div style={{ height: '100%', width: `${cond.confidence}%`, background: 'linear-gradient(90deg, var(--primary), var(--secondary))', borderRadius: '2px' }}></div>
-                          </div>
-                          
-                          <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
-                            <strong style={{ color: '#FFF' }}>Recommendation:</strong> {cond.rec}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="clinical-doctor-booking" style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                      <div className="clinical-doctor-info">
-                        <span className="clinical-doctor-label">AUTOROUTED SPECIALTY:</span>
-                        <span className="clinical-doctor-name" style={{ color: 'var(--primary)' }}>{analyzerResult.specialists}</span>
-                      </div>
-                      <button type="button" className="clinical-book-btn" onClick={() => alert(`Routing consult connection to: ${analyzerResult.specialists}`)}>
-                        Secure Consult
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="results-placeholder">
-                  <div className="results-placeholder-icon">
-                    <StethoscopeIcon />
-                  </div>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: 'var(--text-main)' }}>Awaiting Diagnostics</h4>
-                  <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', maxWidth: '280px', margin: '0 auto' }}>
-                    Complete the symptoms form and execute triage scan to view structured clinical outcomes.
-                  </p>
-                </div>
-              )}
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <SymptomTriageAnalyzer
+        sparkleIcon={<SparkleIcon />}
+        stethoscopeIcon={<StethoscopeIcon />}
+        arrowRightIcon={<ArrowRightIcon />}
+      />
 
       {/* --- HEALTH SCORE CALCULATOR SECTION --- */}
       <section className="analyzer-section container" id="health-calculator" style={{ paddingTop: 0 }}>
@@ -2140,6 +1920,8 @@ function App() {
           </div>
         </div>
       </section>
+
+      <AppointmentManager calendarIcon={<CalendarIcon />} />
     </div>
   );
 }

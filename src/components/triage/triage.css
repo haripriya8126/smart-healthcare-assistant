@@ -1,0 +1,412 @@
+.triage-emergency-banner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+  animation: triageEmergencyPulse 2s ease-in-out infinite;
+}
+
+@keyframes triageEmergencyPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+}
+
+.triage-emergency-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--rose, #ef4444);
+  letter-spacing: 0.4px;
+  margin: 0 0 8px 0;
+}
+
+.triage-emergency-body {
+  font-size: 12.5px;
+  color: var(--text-main, #f8fafc);
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+
+.triage-emergency-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.triage-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.triage-score-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.triage-score-label {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  font-weight: 600;
+}
+
+.triage-explain-block {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.triage-explain-heading {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  margin: 0 0 10px 0;
+}
+
+.triage-factor-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.triage-factor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.triage-factor-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.triage-factor-points {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary, #00f2fe);
+}
+
+.triage-factor-detail {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.triage-disclaimer {
+  font-size: 10.5px;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.45;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.triage-form-error {
+  font-size: 12px;
+  color: var(--rose, #ef4444);
+  margin-top: 8px;
+  text-align: left;
+}
+
+.triage-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Nearby hospitals */
+.nearby-hospitals-block {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.nearby-hospitals-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 11px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(79, 172, 254, 0.35);
+  color: var(--secondary, #4facfe);
+  box-shadow: 0 2px 12px rgba(79, 172, 254, 0.08);
+}
+
+.nearby-hospitals-btn:hover:not(:disabled) {
+  background: rgba(79, 172, 254, 0.1);
+  border-color: rgba(0, 242, 254, 0.45);
+  color: var(--primary, #00f2fe);
+  transform: translateY(-1px);
+}
+
+.nearby-hospitals-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.nearby-hospitals-hint {
+  font-size: 10.5px;
+  color: var(--text-muted, #94a3b8);
+  margin: 8px 0 0 0;
+  line-height: 1.45;
+}
+
+.nearby-hospitals-notice {
+  font-size: 11px;
+  color: var(--amber, #f59e0b);
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.triage-download-btn {
+  flex: 1;
+  min-width: 140px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary, #00f2fe) 0%, var(--secondary, #4facfe) 100%);
+  border: none;
+  color: #040810;
+  box-shadow: 0 4px 16px rgba(0, 242, 254, 0.2);
+}
+
+.triage-download-btn:hover {
+  box-shadow: 0 6px 22px rgba(0, 242, 254, 0.35);
+  transform: translateY(-1px);
+}
+
+.triage-download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Home Care Assistant */
+.home-care-section {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.home-care-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--emerald, #10b981);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+.home-care-intro {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted, #94a3b8);
+  margin: 0 0 14px 0;
+}
+
+.home-care-card {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.home-care-card-emergency {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.home-care-section.home-care-emergency .home-care-heading {
+  color: var(--rose, #ef4444);
+}
+
+.home-care-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main, #f8fafc);
+  margin: 0 0 10px 0;
+}
+
+.home-care-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-care-list li {
+  padding-left: 2px;
+}
+
+.home-care-med-disclaimer {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber, #f59e0b);
+  margin: 12px 0 0 0;
+  line-height: 1.45;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Voice symptom input */
+.voice-symptom-field {
+  width: 100%;
+}
+
+.voice-symptom-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.voice-symptom-label-row .form-label {
+  margin-bottom: 0;
+}
+
+.voice-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  background: rgba(0, 242, 254, 0.08);
+  color: var(--primary, #00f2fe);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.voice-mic-btn:hover {
+  background: rgba(0, 242, 254, 0.14);
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.voice-mic-btn.listening {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: var(--rose, #ef4444);
+  animation: voiceMicPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voiceMicPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+.voice-unsupported-hint {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  font-weight: 600;
+}
+
+.voice-textarea-wrap {
+  position: relative;
+}
+
+.voice-textarea-wrap.is-listening .voice-symptom-textarea {
+  border-color: rgba(0, 242, 254, 0.45);
+  box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.12);
+}
+
+.voice-listening-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary, #00f2fe);
+}
+
+.voice-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary, #00f2fe);
+  animation: voicePulseDot 1s ease-in-out infinite;
+}
+
+@keyframes voicePulseDot {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.voice-input-hint {
+  font-size: 10.5px;
+  color: var(--text-muted, #94a3b8);
+  margin: 8px 0 0 0;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.voice-input-error {
+  font-size: 11.5px;
+  color: var(--rose, #ef4444);
+  margin: 8px 0 0 0;
+  line-height: 1.45;
+  text-align: left;
+}
